@@ -1,0 +1,102 @@
+  char devid[] = "v3118E47A5287506";
+  
+  //////////////
+ //   End    //
+//////////////
+
+char serverName[] = "api.pushingbox.com";
+boolean DEBUG = true;
+#include <Bridge.h>
+#include <HttpClient.h>
+#include <Process.h>
+
+Process date;  
+int hours, minutes, seconds;
+int lastSecond = -1; 
+String sensorValue;
+
+const int buttonPin = 2;
+
+int buttonState = 0;
+
+void setup() {
+  // Bridge takes about two seconds to start up
+  // it can be helpful to use the on-board LED
+  // as an indicator for when it has initialized
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);
+  Bridge.begin();
+  digitalWrite(13, HIGH);
+  Serial.begin(9600);
+  while (!Serial); // wait for a serial connection
+
+  date.begin("date");
+  date.addParameter("+%T");
+  date.run();
+
+  pinMode(buttonPin, INPUT);
+}
+
+void loop() {
+  HttpClient client;
+
+  
+  buttonState = digitalRead(buttonPin);
+  if(buttonState != HIGH){
+
+  }
+  else{
+
+  String APIRequest;
+  APIRequest = String(serverName) + "/pushingbox?devid=" + String(devid)+ "&IDtag=100&TimeStamp=50&TempC="+hours+":"+minutes+":"+seconds;
+  client.get (APIRequest);
+  
+
+  
+  
+  
+  // if there are incoming bytes available
+  // from the server, read them and print them:
+  while (client.available()) {
+    char c = client.read();
+
+  }
+  Serial.flush();
+  String UploadMessage;
+  Serial.print("\n Uploaded temp value: ");
+  Serial.print(hours);
+  Serial.print(minutes);
+  delay(5000);
+
+  if (!date.running()) {
+      date.begin("date");
+      date.addParameter("+%T");
+      date.run();
+    }
+
+  
+
+  while (date.available() > 0) {
+    // get the result of the date process (should be hh:mm:ss):
+    String timeString = date.readString();
+
+    // find the colons:
+    int firstColon = timeString.indexOf(":");
+    int secondColon = timeString.lastIndexOf(":");
+
+    // get the substrings for hour, minute second:
+    String hourString = timeString.substring(0, firstColon);
+    String minString = timeString.substring(firstColon + 1, secondColon);
+    String secString = timeString.substring(secondColon + 1);
+
+    // convert to ints,saving the previous second:
+    hours = hourString.toInt();
+    minutes = minString.toInt();
+    lastSecond = seconds;          // save to do a time comparison
+    seconds = secString.toInt();
+  }
+  }
+
+}
+
+
